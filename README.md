@@ -1,14 +1,26 @@
+# Output plugin for sending records to an Azure Service Bus Queue for [Fluentd](http://fluentd.org)
 
-# Contributing
+## Requirements
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+| fluent-plugin-record-modifier  | fluentd | ruby |
+|--------------------------------|---------|------|
+| >= 1.0.0 | >= v0.14.0 | >= 2.1 |
+|  < 1.0.0 | >= v0.12.0 | >= 1.9 |
 
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## Configuration
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+    <match **>
+        @type azure_servicebus_queue
+        namespace servicebusNamespace
+        queueName queueName
+        accessKeyName send
+        accessKeyValueFile /etc/password/queuePassword
+        timeToLive 60
+        <buffer>
+            @type memory
+            flush_interval 1s
+        </buffer>
+    </match>
+
+Will send records to Azure Service Bus Queue with namespace of servicebusNamespace with queue name of queueName. Will use Shared access policy named send and the Primary/Secondary key in a file located in /etc/password/queuePassword with a time to live of one minute.
+
