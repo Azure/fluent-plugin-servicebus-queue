@@ -42,6 +42,6 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
         assert_equal 'send', d.instance.accessKeyName
         assert_equal '/etc/password/queuePassword', d.instance.accessKeyValueFile
         assert_equal 60, d.instance.timeToLive
-        assert_equal 'messages', d.instance.field
+        assert_equal 'message', d.instance.field
     end
 end
