@@ -13,6 +13,7 @@ module Fluent::Plugin
     config_param :accessKeyName, :string
     config_param :accessKeyValueFile, :string
     config_param :timeToLive, :integer
+    config_param :field, :string, :default => "message"
 
     # method for sync buffered output mode
     def write(chunk)
@@ -33,7 +34,7 @@ module Fluent::Plugin
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
       chunk.each do |time, record|
-        request.body = record["message"]
+        request.body = record[field]
         https.request(request)
       end
     end
