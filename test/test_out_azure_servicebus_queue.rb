@@ -18,6 +18,7 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
         accessKeyName send
         accessKeyValueFile /etc/password/queuePassword
         format json
+        timeToLive 60
     !
 
     def create_driver(conf = CONFIG)
@@ -40,5 +41,7 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
         assert_equal 'test_queue_name', d.instance.queueName
         assert_equal 'send', d.instance.accessKeyName
         assert_equal '/etc/password/queuePassword', d.instance.accessKeyValueFile
+        assert_equal 60, d.instance.timeToLive
+        assert_equal 'message', d.instance.field
     end
 end
