@@ -10,10 +10,12 @@ module Fluent::Plugin
 
     config_param :namespace, :string
     config_param :queueName, :string
-    config_param :accessKeyName, :string
-    config_param :accessKeyValueFile, :string
+    config_param :accessKeyName, :string, :default => nil
+    config_param :accessKeyValueFile, :string, :default => nil
     config_param :timeToLive, :integer
     config_param :field, :string, :default => "message"
+    config_param :use_msi, :bool, default: false
+    config_param :client_id, :string, :default => nil
 
     # method for sync buffered output mode
     def write(chunk)
@@ -21,8 +23,12 @@ module Fluent::Plugin
       split = read.split("\n")
 
       url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
-      keyValue = getAccessKeyValue
-      token = generateToken(url, accessKeyName, keyValue)
+      if use_msi
+        token = generateMSIToken(client_id)
+      else 
+        keyValue = getAccessKeyValue
+        token = generateToken(url, accessKeyName, keyValue)
+      end
 
       uri = URI.parse(url)
       https = Net::HTTP.new(uri.host, uri.port)
@@ -57,6 +63,19 @@ module Fluent::Plugin
         ).gsub('+', '%20')
 
       "SharedAccessSignature sr=#{target_uri}&sig=#{signature}&se=#{expires}&skn=#{key_name}"
+    end
+
+    # reference1: https://github.com/microsoft/fluent-plugin-azure-storage-append-blob/blob/master/lib/fluent/plugin/out_azure-storage-append-blob.rb
+    # reference2: https://github.com/Azure/azure-sdk-for-ruby/blob/master/runtime/ms_rest_azure/lib/ms_rest_azure/credentials/msi_token_provider.rb
+    def generateMSIToken(clientid)
+      access_key_request = Faraday.new('http://169.254.169.254/metadata/identity/oauth2/token?' \
+                                      "api-version=2018-02-01" \
+                                      '&resource=https://servicebus.azure.net/' \
+                                      '&client_id=#{clientid}',
+                                      headers: { 'Metadata' => 'true' })
+                                  .get
+                                  .body
+      JSON.parse(access_key_request)['access_token']
     end
   end
 end
