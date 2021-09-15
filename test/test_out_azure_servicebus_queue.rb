@@ -27,8 +27,8 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
     queueName test_queue_name
     format json
     timeToLive 60
-    use_msi true
-    client_id abc
+    useMSI true
+    clientIDFile abc
 !
 
     def create_driver(conf)
@@ -62,7 +62,7 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
         assert_equal 'test_queue_name', d.instance.queueName
         assert_equal 60, d.instance.timeToLive
         assert_equal 'message', d.instance.field
-        assert_equal true, d.instance.use_msi
-        assert_equal 'abc', d.instance.client_id
+        assert_equal true, d.instance.useMSI
+        assert_equal 'abc', d.instance.clientIDFile
     end
 end

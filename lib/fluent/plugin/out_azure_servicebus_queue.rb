@@ -14,8 +14,8 @@ module Fluent::Plugin
     config_param :accessKeyValueFile, :string, :default => nil
     config_param :timeToLive, :integer
     config_param :field, :string, :default => "message"
-    config_param :use_msi, :bool, default: false
-    config_param :client_id, :string, :default => nil
+    config_param :useMSI, :bool, default: false
+    config_param :clientIDFile, :string, :default => nil
 
     # method for sync buffered output mode
     def write(chunk)
@@ -23,7 +23,8 @@ module Fluent::Plugin
       split = read.split("\n")
 
       url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
-      if use_msi
+      if useMSI
+        client_id = getCientID
         token = generateMSIToken(client_id)
       else 
         keyValue = getAccessKeyValue
@@ -47,6 +48,10 @@ module Fluent::Plugin
 
     def getAccessKeyValue
       File.read(accessKeyValueFile).strip
+    end
+
+    def getCientID
+      File.read(clientIDFile).strip
     end
 
     def generateToken(url,key_name,key_value)
