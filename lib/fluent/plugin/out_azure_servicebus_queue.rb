@@ -76,7 +76,7 @@ module Fluent::Plugin
       access_key_request = Faraday.new('http://169.254.169.254/metadata/identity/oauth2/token?' \
                                       "api-version=2018-02-01" \
                                       '&resource=https://servicebus.azure.net/' \
-                                      '&client_id=#{clientid}',
+                                      "&client_id=#{clientid}",
                                       headers: { 'Metadata' => 'true' })
                                   .get
                                   .body
