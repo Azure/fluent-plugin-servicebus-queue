@@ -40,9 +40,12 @@ module Fluent::Plugin
       request['Authorization'] = token
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
+      puts chunk
+
       chunk.each do |time, record|
         request.body = record[field]
-        https.request(request)
+        response  = https.request(request)
+        puts response
       end
     end
 
