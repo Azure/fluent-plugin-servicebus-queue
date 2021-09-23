@@ -41,7 +41,7 @@ module Fluent::Plugin
       https.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request = Net::HTTP::Post.new(uri.request_uri)
       request['Content-Type'] = 'application/json'
-      request['Authorization'] = token
+      request['Authorization'] = 'Bearer ' + token
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
       puts "testchunkforplugin"
@@ -52,6 +52,8 @@ module Fluent::Plugin
         response  = https.request(request)
         puts "testresponseforplugin"
         puts response
+        puts "testresponsebodyforplugin"
+        puts response.body
       end
     end
 
