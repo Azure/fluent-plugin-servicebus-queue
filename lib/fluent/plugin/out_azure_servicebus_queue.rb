@@ -3,6 +3,7 @@ require 'cgi'
 require 'openssl'
 require 'base64'
 require 'net/http'
+require 'faraday'
 
 module Fluent::Plugin
   class AzureServicebusQueue < Output
