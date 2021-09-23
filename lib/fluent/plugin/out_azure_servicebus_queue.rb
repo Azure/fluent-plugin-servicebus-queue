@@ -27,13 +27,6 @@ module Fluent::Plugin
       split = read.split("\n")
 
       url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
-      if useMSI
-        client_id = getCientID
-        token = generateMSIToken(client_id)
-      else 
-        keyValue = getAccessKeyValue
-        token = generateToken(url, accessKeyName, keyValue)
-      end
 
       uri = URI.parse(url)
       https = Net::HTTP.new(uri.host, uri.port)
@@ -41,7 +34,17 @@ module Fluent::Plugin
       https.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request = Net::HTTP::Post.new(uri.request_uri)
       request['Content-Type'] = 'application/json'
-      request['Authorization'] = 'Bearer ' + token
+
+      if useMSI
+        client_id = getCientID
+        token = generateMSIToken(client_id)
+        request['Authorization'] = "Bearer #{token}"
+      else 
+        keyValue = getAccessKeyValue
+        token = generateToken(url, accessKeyName, keyValue)
+        request['Authorization'] = token
+      end
+      
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
       puts "testchunkforplugin"
