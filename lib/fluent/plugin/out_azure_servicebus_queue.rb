@@ -19,6 +19,9 @@ module Fluent::Plugin
 
     # method for sync buffered output mode
     def write(chunk)
+      puts "testchunkforplugin1"
+      puts chunk
+
       read = chunk.read()
       split = read.split("\n")
 
@@ -40,11 +43,13 @@ module Fluent::Plugin
       request['Authorization'] = token
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
+      puts "testchunkforplugin"
       puts chunk
 
       chunk.each do |time, record|
         request.body = record[field]
         response  = https.request(request)
+        puts "testresponseforplugin"
         puts response
       end
     end
@@ -84,6 +89,9 @@ module Fluent::Plugin
                                   .get
                                   .body
       JSON.parse(access_key_request)['access_token']
+      puts "access_token"
+      puts access_key_request
+      puts JSON.parse(access_key_request)['access_token']
     end
   end
 end
