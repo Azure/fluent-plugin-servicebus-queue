@@ -38,7 +38,9 @@ module Fluent::Plugin
       if useMSI
         client_id = getCientID
         token = generateMSIToken(client_id)
-        request['Authorization'] = "Bearer #{token}"
+        puts "testtoken"
+        puts token
+        request['Authorization'] = token
       else 
         keyValue = getAccessKeyValue
         token = generateToken(url, accessKeyName, keyValue)
@@ -94,10 +96,12 @@ module Fluent::Plugin
                                       headers: { 'Metadata' => 'true' })
                                   .get
                                   .body
-      JSON.parse(access_key_request)['access_token']
       puts "access_token"
       puts access_key_request
       puts JSON.parse(access_key_request)['access_token']
+      access_token = JSON.parse(access_key_request)['access_token']
+      
+      "Bearer #{access_token}"
     end
   end
 end
