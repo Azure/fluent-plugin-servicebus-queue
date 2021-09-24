@@ -44,7 +44,7 @@ module Fluent::Plugin
 
       chunk.each do |time, record|
         request.body = record[field]
-        response  = https.request(request)
+        https.request(request)
       end
     end
 
