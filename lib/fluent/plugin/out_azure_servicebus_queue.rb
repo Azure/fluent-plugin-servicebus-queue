@@ -17,6 +17,9 @@ module Fluent::Plugin
     config_param :field, :string, :default => "message"
     config_param :useMSI, :bool, default: false
     config_param :clientIDFile, :string, :default => nil
+   
+    IMDS_TOKEN_ACQUIRE_URL = "http://169.254.169.254/metadata/identity/oauth2/token" # The managed identities for Azure resources endpoint for the Instance Metadata Service.
+    API_VERSION = "2018-02-01" # the API version for the IMDS endpoint. Please use API version 2018-02-01 or greater.
 
     # method for sync buffered output mode
     def write(chunk)
@@ -26,7 +29,7 @@ module Fluent::Plugin
       url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
 
       if useMSI
-        client_id = getCientID
+        client_id = getClientID
         token = generateMSIToken(client_id)
       else 
         keyValue = getAccessKeyValue
@@ -52,7 +55,7 @@ module Fluent::Plugin
       File.read(accessKeyValueFile).strip
     end
 
-    def getCientID
+    def getClientID
       File.read(clientIDFile).strip
     end
 
@@ -72,12 +75,12 @@ module Fluent::Plugin
       "SharedAccessSignature sr=#{target_uri}&sig=#{signature}&se=#{expires}&skn=#{key_name}"
     end
 
-    # reference1: https://github.com/microsoft/fluent-plugin-azure-storage-append-blob/blob/master/lib/fluent/plugin/out_azure-storage-append-blob.rb
-    # reference2: https://github.com/Azure/azure-sdk-for-ruby/blob/master/runtime/ms_rest_azure/lib/ms_rest_azure/credentials/msi_token_provider.rb
-    # reference3: https://docs.microsoft.com/en-us/rest/api/servicebus/send-message-to-queue
+    # reference1: https://docs.microsoft.com/en-us/rest/api/servicebus/send-message-to-queue (Instruction to send message to a service bus queue using Azure AD JWT token)
+    # reference2: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token (Instruction to use managed identities for\ 
+    # Azure resources on an Azure VM to acquire an access token)
     def generateMSIToken(clientid)
-      access_key_request = Faraday.new('http://169.254.169.254/metadata/identity/oauth2/token?' \
-                                      "api-version=2018-02-01" \
+      access_key_request = Faraday.new(IMDS_TOKEN_ACQUIRE_URL \
+                                      "?api-version=#{API_VERSION}" \
                                       '&resource=https://servicebus.azure.net/' \
                                       "&client_id=#{clientid}",
                                       headers: { 'Metadata' => 'true' })
