@@ -20,13 +20,18 @@ module Fluent::Plugin
 
     # method for sync buffered output mode
     def write(chunk)
-      puts "testchunkforplugin1"
-      puts chunk
-
       read = chunk.read()
       split = read.split("\n")
 
       url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
+
+      if useMSI
+        client_id = getCientID
+        token = generateMSIToken(client_id)
+      else 
+        keyValue = getAccessKeyValue
+        token = generateToken(url, accessKeyName, keyValue)
+      end
 
       uri = URI.parse(url)
       https = Net::HTTP.new(uri.host, uri.port)
@@ -34,31 +39,12 @@ module Fluent::Plugin
       https.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request = Net::HTTP::Post.new(uri.request_uri)
       request['Content-Type'] = 'application/json'
-
-      if useMSI
-        client_id = getCientID
-        token = generateMSIToken(client_id)
-        puts "testtoken"
-        puts token
-        request['Authorization'] = token
-      else 
-        keyValue = getAccessKeyValue
-        token = generateToken(url, accessKeyName, keyValue)
-        request['Authorization'] = token
-      end
-      
+      request['Authorization'] = token
       request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
-
-      puts "testchunkforplugin"
-      puts chunk
 
       chunk.each do |time, record|
         request.body = record[field]
         response  = https.request(request)
-        puts "testresponseforplugin"
-        puts response
-        puts "testresponsebodyforplugin"
-        puts response.body
       end
     end
 
@@ -88,6 +74,7 @@ module Fluent::Plugin
 
     # reference1: https://github.com/microsoft/fluent-plugin-azure-storage-append-blob/blob/master/lib/fluent/plugin/out_azure-storage-append-blob.rb
     # reference2: https://github.com/Azure/azure-sdk-for-ruby/blob/master/runtime/ms_rest_azure/lib/ms_rest_azure/credentials/msi_token_provider.rb
+    # reference3: https://docs.microsoft.com/en-us/rest/api/servicebus/send-message-to-queue
     def generateMSIToken(clientid)
       access_key_request = Faraday.new('http://169.254.169.254/metadata/identity/oauth2/token?' \
                                       "api-version=2018-02-01" \
@@ -96,11 +83,8 @@ module Fluent::Plugin
                                       headers: { 'Metadata' => 'true' })
                                   .get
                                   .body
-      puts "access_token"
-      puts access_key_request
-      puts JSON.parse(access_key_request)['access_token']
       access_token = JSON.parse(access_key_request)['access_token']
-      
+
       "Bearer #{access_token}"
     end
   end
