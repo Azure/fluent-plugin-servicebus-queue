@@ -79,7 +79,7 @@ module Fluent::Plugin
     # reference2: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token (Instruction to use managed identities for\ 
     # Azure resources on an Azure VM to acquire an access token)
     def generateMSIToken(clientid)
-      access_key_request = Faraday.new(IMDS_TOKEN_ACQUIRE_URL \
+      access_key_request = Faraday.new("#{IMDS_TOKEN_ACQUIRE_URL}" \
                                       "?api-version=#{API_VERSION}" \
                                       '&resource=https://servicebus.azure.net/' \
                                       "&client_id=#{clientid}",
